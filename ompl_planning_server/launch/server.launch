@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- <group ns="ompl_server_1"> -->
+        <node name="ompl_planning_server" pkg="ompl_planning_server" type="server" output="screen"/>
+    <!-- </group> -->
+</launch>
