@@ -19,45 +19,56 @@ from nexon.io import LogDB
 from nexon_msgs.srv import PTPPlanning, PTPPlanningResponse
 from nexon_msgs.srv import LINPlanning, LINPlanningResponse
 
-DB = LogDB()
+DO_LOGGING = False
 
-def log_planning_request(func):
-    """Write planning requests to a log database.
-    This function is used as a decorator on the functions that handle planning requests
-    like this:
-    
-    @log_planning_requests
-    def handle_request(request, robot):
-        # do stuff
-        return response
-    
-    """
-    def wrapper(req, robot):
-        # Log input
-        logdata = {}
-        logdata["planning_request"] = message_converter.convert_ros_message_to_dictionary(req)
+if DO_LOGGING:
+    DB = LogDB()
 
-        try:
-            logdata["planner_config"] = rospy.get_param("/move_group/planner_configs/" + req.planner)
-        except:
-            logdata["planner_config"] = "NaN"
+    def log_planning_request(func):
+        """Write planning requests to a log database.
+        This function is used as a decorator on the functions that handle planning requests
+        like this:
 
-        # Execute the actual
-        response = func(req, robot)
+        @log_planning_requests
+        def handle_request(request, robot):
+            # do stuff
+            return response
 
-        # Log output
-        #logdata["planning_response"] = response
-        print(logdata)
-        DB.add_data(logdata)
+        """
+        def wrapper(req, robot):
+            # Log input
+            logdata = {}
+            logdata["planning_request"] = message_converter.convert_ros_message_to_dictionary(
+                req)
 
-        return response
-    
-    return wrapper
+            try:
+                logdata["planner_config"] = rospy.get_param(
+                    "/move_group/planner_configs/" + req.planner)
+            except:
+                logdata["planner_config"] = "NaN"
+
+            # Execute the actual
+            response = func(req, robot)
+
+            # Log output
+            #logdata["planning_response"] = response
+            print(logdata)
+            DB.add_data(logdata)
+
+            return response
+
+        return wrapper
+else:
+    def log_planning_request(func):
+        def wrapper(req, robot):
+            return func(req, robot)
+        return wrapper
+
 
 @log_planning_request
 def handle_planning_request(req, robot):
     print("Received ptp planning request")
-    #print(req)
+    # print(req)
 
     plan = RobotTrajectory()
     robot.set_planner(req.planner)
@@ -87,10 +98,11 @@ def handle_planning_request(req, robot):
     else:
         return PTPPlanningResponse(False, [])
 
+
 @log_planning_request
 def handle_linear_planning_request(req, robot):
     print("Received linear planning request")
-    #print(req)
+    # print(req)
     resp = LINPlanningResponse()
 
     if req.has_constraints:
