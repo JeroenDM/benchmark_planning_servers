@@ -21,7 +21,6 @@ def handle_planning_request(req, robot):
     print(req)
 
     plan = RobotTrajectory()
-    robot.set_planner(req.planner)
 
     # set start configuration if given
     if len(req.start_config) > 0:

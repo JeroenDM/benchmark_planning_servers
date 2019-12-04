@@ -27,7 +27,6 @@ public:
   bool executePlanningRequest(nexon_msgs::PTPPlanning::Request& req, nexon_msgs::PTPPlanning::Response& resp)
   {
     ROS_INFO_STREAM("Received a planning request\n" << req);
-    mg_->setPlannerId(req.planner);
 
     // Check if we need to set a specific start state (joint values)
     robot_state::RobotState start_state(*mg_->getCurrentState());
