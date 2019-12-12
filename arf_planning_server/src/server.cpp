@@ -16,13 +16,13 @@ arf::Trajectory createTrajectory()
   arf::Trajectory ee_trajectory_;
   for (int i = 0; i < 10; ++i)
   {
-    Number x(0.98);
-    Number y(-0.5 + static_cast<double>(i) / 9);
-    Number z(0.02);
-    Number rx(0.0), ry(135.0 * M_PI / 180.0); //, ry(-M_PI);
+    arf::Number x(0.98);
+    arf::Number y(-0.5 + static_cast<double>(i) / 9);
+    arf::Number z(0.02);
+    arf::Number rx(0.0), ry(135.0 * M_PI / 180.0); //, ry(-M_PI);
     //TolerancedNumber ry(-M_PI, -M_PI - 1.0, -M_PI + 1.0, 5);
-    TolerancedNumber rz(0, -M_PI, M_PI, 10);
-    TrajectoryPoint tp(x, y, z, rx, ry, rz);
+    arf::TolerancedNumber rz(0, -M_PI, M_PI, 10);
+    arf::TrajectoryPoint tp(x, y, z, rx, ry, rz);
     ee_trajectory_.push_back(tp);
   }
   return ee_trajectory_;
@@ -57,18 +57,18 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
   for (int i = 0; i < num_pts; ++i)
   {
     Eigen::Vector3d position = poses[i].translation();
-    Number x(position[0]);
-    Number y(position[1]);
-    Number z(position[2]);
+    arf::Number x(position[0]);
+    arf::Number y(position[1]);
+    arf::Number z(position[2]);
 
     Eigen::Vector3d rpy_angles = poses[i].rotation().eulerAngles(0, 1, 2);
     //ROS_INFO_STREAM("EUler angles: " << rpy_angles << "\n");
-    Number rx(rpy_angles[0]), ry(rpy_angles[1]);
-    TolerancedNumber rz(rpy_angles[2], -M_PI, M_PI, 30);
+    arf::Number rx(rpy_angles[0]), ry(rpy_angles[1]);
+    arf::TolerancedNumber rz(rpy_angles[2], -M_PI, M_PI, 30);
     //Number rx(0.0), ry(135.0 * M_PI / 180.0);
     //TolerancedNumber rz(0, -M_PI, M_PI, 10);
 
-    TrajectoryPoint tp(x, y, z, rx, ry, rz);
+    arf::TrajectoryPoint tp(x, y, z, rx, ry, rz);
     ee_trajectory_.push_back(tp);
   }
   return ee_trajectory_;
@@ -101,7 +101,7 @@ class PlanningServer
 {
   ros::NodeHandle nh_;
   ros::ServiceServer cart_plannig_server_;
-  Robot robot_;
+  arf::Robot robot_;
   arf::Rviz rviz_;
 
 public:
