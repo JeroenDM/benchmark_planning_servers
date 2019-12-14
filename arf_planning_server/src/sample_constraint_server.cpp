@@ -25,12 +25,14 @@ std::vector<std::vector<double>> calculateValidJointPoses(arf::Robot& robot, arf
     }
     for (auto q_sol : robot.ik(pose))
     {
+      if (DEBUG)
+      {
+          robot.plot(rviz.visual_tools_, q_sol);
+          ros::Duration(0.01).sleep();
+      }
       if (!robot.isInCollision(q_sol))
       {
         joint_poses.push_back(q_sol);
-        if (DEBUG){
-          robot.plot(rviz.visual_tools_, q_sol);
-        }
       }
     }
   }
