@@ -4,6 +4,7 @@
 #include <geometry_msgs/Pose.h>
 
 #include <arf_moveit_wrapper/moveit_wrapper.h>
+#include <arf_moveit_wrapper/redundant_robot.h>
 #include <arf_trajectory/trajectory.h>
 #include <nexon_msgs/SampleConstraint.h>
 #include <nexon_msgs/JointPose.h>
@@ -15,7 +16,7 @@
 bool DEBUG = false;
 
 /* \Brief Find collision free inverse kinematic solutions for a given toleranced trajectory point. */
-std::vector<std::vector<double>> calculateValidJointPoses(arf::Robot& robot, arf::TrajectoryPoint& tp, arf::Rviz& rviz)
+std::vector<std::vector<double>> calculateValidJointPoses(arf::RedundantRobot& robot, arf::TrajectoryPoint& tp, arf::Rviz& rviz)
 {
   std::vector<std::vector<double>> joint_poses;
   for (auto pose : tp.getGridSamples())
@@ -23,7 +24,7 @@ std::vector<std::vector<double>> calculateValidJointPoses(arf::Robot& robot, arf
     if (DEBUG){
       rviz.plotPose(pose);
     }
-    for (auto q_sol : robot.ik(pose))
+    for (auto q_sol : robot.ikGridSamples(pose))
     {
       if (DEBUG)
       {
@@ -57,7 +58,7 @@ std::vector<arf::Number> parseConstraint(Eigen::Vector3d vals, std::vector<doubl
       }
       else
       {
-        numbers.push_back(arf::TolerancedNumber(vals[i], mins[i], maxs[i]));
+        numbers.push_back(arf::TolerancedNumber(vals[i], mins[i] + vals[i], maxs[i] + vals[i]));
       }
     }
   }
@@ -100,7 +101,7 @@ class SampleServer
 {
   ros::NodeHandle nh_;
   ros::ServiceServer cart_plannig_server_;
-  arf::Robot robot_;
+  arf::RedundantRobot robot_;
   arf::Rviz rviz_;
 public:
   SampleServer()
