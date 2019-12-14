@@ -138,14 +138,16 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_server src/server.cpp)
-add_executable(${PROJECT_NAME}_sample_constraint_server src/sample_constraint_server.cpp)
+add_executable(${PROJECT_NAME}_sample_constraint_server_1 src/sample_constraint_server_1.cpp)
+add_executable(${PROJECT_NAME}_sample_constraint_server_3 src/sample_constraint_server_3.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 set_target_properties(${PROJECT_NAME}_server PROPERTIES OUTPUT_NAME server PREFIX "")
-set_target_properties(${PROJECT_NAME}_sample_constraint_server PROPERTIES OUTPUT_NAME sample_constraint_server PREFIX "")
+set_target_properties(${PROJECT_NAME}_sample_constraint_server_1 PROPERTIES OUTPUT_NAME sample_constraint_server_1 PREFIX "")
+set_target_properties(${PROJECT_NAME}_sample_constraint_server_3 PROPERTIES OUTPUT_NAME sample_constraint_server_3 PREFIX "")
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -155,7 +157,10 @@ set_target_properties(${PROJECT_NAME}_sample_constraint_server PROPERTIES OUTPUT
 target_link_libraries(${PROJECT_NAME}_server
   ${catkin_LIBRARIES}
 )
-target_link_libraries(${PROJECT_NAME}_sample_constraint_server
+target_link_libraries(${PROJECT_NAME}_sample_constraint_server_1
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_sample_constraint_server_3
   ${catkin_LIBRARIES}
 )
 

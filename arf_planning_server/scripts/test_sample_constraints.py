@@ -18,12 +18,24 @@ if __name__ == "__main__":
         "arf_sample_constraint", nexon_msgs.srv.SampleConstraint)
 
     # fixed pose for setup_1, l_profile task
+    # R = parse_rotation([0, 135, 90])
+    # q = quaternion_from_matrix(R)
+    # pose = geometry_msgs.msg.Pose()
+    # pose.position.x = 0.92
+    # pose.position.y = -0.5
+    # pose.position.z = 0.02
+    # pose.orientation.x = q[0]
+    # pose.orientation.y = q[1]
+    # pose.orientation.z = q[2]
+    # pose.orientation.w = q[3]
+
+    # fixed pose for setup_3, halfopen box 0.95 1.1 0.05 0 135 90
     R = parse_rotation([0, 135, 90])
     q = quaternion_from_matrix(R)
     pose = geometry_msgs.msg.Pose()
-    pose.position.x = 0.92
-    pose.position.y = -0.5
-    pose.position.z = 0.02
+    pose.position.x = 2.95
+    pose.position.y = 1.4
+    pose.position.z = 0.9527
     pose.orientation.x = q[0]
     pose.orientation.y = q[1]
     pose.orientation.z = q[2]
