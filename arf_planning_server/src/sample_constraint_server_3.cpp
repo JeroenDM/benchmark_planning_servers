@@ -13,7 +13,7 @@
 // I put some code in header files instead of separate libraries #quickanddirty
 #include "arf_planning_server/visual_tools_wrapper.h"
 
-bool DEBUG = false;
+bool DEBUG = true;
 
 /* \Brief Find collision free inverse kinematic solutions for a given toleranced trajectory point. */
 std::vector<std::vector<double>> calculateValidJointPoses(arf::RedundantRobot& robot, arf::TrajectoryPoint& tp, arf::Rviz& rviz)
@@ -33,7 +33,17 @@ std::vector<std::vector<double>> calculateValidJointPoses(arf::RedundantRobot& r
       }
       if (!robot.isInCollision(q_sol))
       {
-        joint_poses.push_back(q_sol);
+        if (robot.isInJointLimits(q_sol))
+        {
+          joint_poses.push_back(q_sol);
+        }
+        else
+        {
+          ROS_INFO_STREAM("IK-solution outside joint limits.");
+        }
+      }
+      {
+        ROS_INFO_STREAM("IK-solution not collision free.");
       }
     }
   }

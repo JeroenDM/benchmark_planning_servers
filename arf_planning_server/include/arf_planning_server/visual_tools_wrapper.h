@@ -4,6 +4,8 @@
 #include <Eigen/Dense>
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
+#include "arf_moveit_wrapper/redundant_robot.h"
+
 namespace arf
 {
 namespace rvt = rviz_visual_tools;
@@ -19,6 +21,7 @@ public:
 
   void plotPose(Eigen::Affine3d pose);
   void plotPath(Robot& robot, std::vector<std::vector<double>>& path);
+  void plotPath(RedundantRobot& robot, std::vector<std::vector<double>>& path);
   void clear();
 };
 
@@ -30,6 +33,15 @@ void Rviz::plotPose(Eigen::Affine3d pose)
 }
 
 void Rviz::plotPath(Robot& robot, std::vector<std::vector<double>>& path)
+{
+  for (auto q : path)
+  {
+    robot.plot(visual_tools_, q);
+    ros::Duration(0.5).sleep();
+  }
+
+}
+void Rviz::plotPath(RedundantRobot& robot, std::vector<std::vector<double>>& path)
 {
   for (auto q : path)
   {
