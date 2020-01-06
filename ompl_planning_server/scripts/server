@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 import rospy
 
+from nexon.io import LogDB
+
 from ompl_planning_server.robot import Robot
 from ompl_planning_server.servers import PTPServer, CartServer
 
 if __name__ == "__main__":
     rospy.init_node('ompl_planning_server')
 
+    # Open a connection to database for logging
+    DB = LogDB(collection="ompl_planning_server")
+
     robot = Robot()
-    ptp_server = PTPServer('ompl_ptp_planning', robot)
-    cart_server = CartServer('ompl_lin_planning', robot)
+    ptp_server = PTPServer('ompl_ptp_planning', robot, DB)
+    cart_server = CartServer('ompl_lin_planning', robot, DB)
 
     print("Ready receive planning requests.")
     rospy.spin()
