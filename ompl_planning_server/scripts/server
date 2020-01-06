@@ -1,149 +1,15 @@
 #!/usr/bin/env python
-"""
-Launch a PTPPlanning server and a LINPlanning server,
-implemented using the move_group interface.
-
-The move_group interface is not used directly,
-but through the more readable Robot wrapper class
-in the nexon package.
-"""
-import copy
 import rospy
 
-from rospy_message_converter import message_converter
-from moveit_msgs.msg import RobotTrajectory
-from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
-
-from nexon.robot import Robot
-from nexon.io import LogDB
-from nexon_msgs.srv import PTPPlanning, PTPPlanningResponse
-from nexon_msgs.srv import LINPlanning, LINPlanningResponse
-
-DO_LOGGING = False
-
-if DO_LOGGING:
-    DB = LogDB()
-
-    def log_planning_request(func):
-        """Write planning requests to a log database.
-        This function is used as a decorator on the functions that handle planning requests
-        like this:
-
-        @log_planning_requests
-        def handle_request(request, robot):
-            # do stuff
-            return response
-
-        """
-        def wrapper(req, robot):
-            # Log input
-            logdata = {}
-            logdata["planning_request"] = message_converter.convert_ros_message_to_dictionary(
-                req)
-
-            try:
-                logdata["planner_config"] = rospy.get_param(
-                    "/move_group/planner_configs/" + req.planner)
-            except:
-                logdata["planner_config"] = "NaN"
-
-            # Execute the actual
-            response = func(req, robot)
-
-            # Log output
-            #logdata["planning_response"] = response
-            print(logdata)
-            DB.add_data(logdata)
-
-            return response
-
-        return wrapper
-else:
-    def log_planning_request(func):
-        def wrapper(req, robot):
-            return func(req, robot)
-        return wrapper
-
-
-@log_planning_request
-def handle_planning_request(req, robot):
-    print("Received ptp planning request")
-    # print(req)
-    config = rospy.get_param("/ptp_config")
-    robot.set_ompl_planner_params(config)
-
-    plan = RobotTrajectory()
-
-    # set start configuration if given
-    if len(req.start_config) > 0:
-        state = robot.mc.get_current_state()
-        state.joint_state.position = req.start_config
-        robot.mg.set_start_state(state)
-
-    # plan to joint goal if given
-    if len(req.joint_goal) > 0:
-        plan = robot.movej(req.joint_goal)
-
-    # otherwise plan to pose goal
-    else:
-        plan = robot.movep(req.pose_goal)
-
-    # check if the plan has joint positions in it
-    if len(plan.joint_trajectory.points) > 0:
-        success = True
-    else:
-        success = False
-
-    if success:
-        return PTPPlanningResponse(success, plan.joint_trajectory.points)
-    else:
-        return PTPPlanningResponse(False, [])
-
-
-@log_planning_request
-def handle_linear_planning_request(req, robot):
-    print("Received linear planning request")
-    # print(req)
-    config = rospy.get_param("/cart_config")
-    robot.set_cart_planner_params(config)
-
-    resp = LINPlanningResponse()
-
-    if req.has_constraints:
-        print("This planner does not support constraints.")
-        resp.success = False
-        return resp
-
-    # set start configuration if given
-    if len(req.start_config) > 0:
-        state = robot.mc.get_current_state()
-        state.joint_state.position = req.start_config
-        robot.mg.set_start_state(state)
-        p_start = robot.forward_kinematics(req.start_config)
-    else:
-        p_start = robot.forward_kinematics(robot.mg.get_current_joint_values())
-
-    plan = robot.movel(p_start, req.pose_goal)
-
-    return LINPlanningResponse(success=True, joint_path=plan.joint_trajectory.points)
-
-
-def handle_move_home_request(req):
-    print("Received request to move to home.")
-    return TriggerResponse(False, "Service not implemented yet.")
-
+from ompl_planning_server.robot import Robot
+from ompl_planning_server.servers import PTPServer, CartServer
 
 if __name__ == "__main__":
     rospy.init_node('ompl_planning_server')
 
     robot = Robot()
-
-    plan = rospy.Service('ompl_ptp_planning', PTPPlanning,
-                         lambda x: handle_planning_request(x, robot))
-    move_home = rospy.Service('move_home', Trigger,
-                              handle_move_home_request)
-    lin_plan = rospy.Service('ompl_lin_planning',
-                             LINPlanning, lambda x: handle_linear_planning_request(x, robot))
+    ptp_server = PTPServer('ompl_ptp_planning', robot)
+    cart_server = CartServer('ompl_lin_planning', robot)
 
     print("Ready receive planning requests.")
     rospy.spin()
