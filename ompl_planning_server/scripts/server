@@ -69,6 +69,8 @@ else:
 def handle_planning_request(req, robot):
     print("Received ptp planning request")
     # print(req)
+    config = rospy.get_param("/ptp_config")
+    robot.set_ompl_planner_params(config)
 
     plan = RobotTrajectory()
 
@@ -102,6 +104,9 @@ def handle_planning_request(req, robot):
 def handle_linear_planning_request(req, robot):
     print("Received linear planning request")
     # print(req)
+    config = rospy.get_param("/cart_config")
+    robot.set_cart_planner_params(config)
+
     resp = LINPlanningResponse()
 
     if req.has_constraints:
