@@ -27,8 +27,13 @@ def log_request(request_handler):
         response = request_handler(self, req)
         runtime = time.time() - start_time
 
+        # check if a run id was published by the benchmark runner node
+        if not rospy.has_param("/benchmark_run_id"):
+            raise Exception(
+                "No /benchmark_run_id was found on the ROS parameter server.")
+
         # get the current run id from the parameter server
-        run_id = rospy.get_param("run_id")
+        run_id = rospy.get_param("/benchmark_run_id")
 
         log_data = {
             "runtime": runtime,
