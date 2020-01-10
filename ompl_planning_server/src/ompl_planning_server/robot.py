@@ -16,7 +16,7 @@ class Robot:
     def __init__(self, argv=[]):
         moveit_commander.roscpp_initialize(argv)
         self.mc = moveit_commander.RobotCommander()
-        self.mg = moveit_commander.MoveGroupCommander(self.GROUP_NAME)
+        self.mg = self.mc.get_group(self.GROUP_NAME)
         self.scene = moveit_commander.PlanningSceneInterface()
 
         rospy.wait_for_service("/compute_fk")
