@@ -52,6 +52,26 @@ def log_request(request_handler):
     return wrapper
 
 
+def set_start_config(robot, start_config):
+    """ If the complete robot state has more joints that the current
+    planning group, we need to specify the positions of the external axis.
+    Set them to zeros for now.
+    """
+    robot_state = robot.mc.get_current_state()
+    ndof_state = len(robot_state.joint_state.position)
+    ndof_group = len(start_config)
+    print("======================= group, state {}".format(
+        (ndof_group, ndof_state)))
+    if ndof_group < ndof_state:
+        q = list(start_config)
+        q.extend((ndof_state - ndof_group) * [0.0])
+    else:
+        q = start_config
+    robot_state.joint_state.position = q
+    print("============================= setting robot state to {}".format(q))
+    robot.mg.set_start_state(robot_state)
+
+
 class PTPServer:
     """ Point-to-point planning ROS service. """
 
@@ -75,12 +95,16 @@ class PTPServer:
 
         # set start configuration if given
         if len(req.start_config) > 0:
-            state = self.robot.mc.get_current_state()
-            state.joint_state.position = req.start_config
-            self.robot.mg.set_start_state(state)
+            set_start_config(self.robot, req.start_config)
+            # state = self.robot.mc.get_current_state()
+            # state.joint_state.position = req.start_config
+            # print(state)
+            # self.robot.mg.set_start_state(state)
 
         # plan to joint goal if given
         if len(req.joint_goal) > 0:
+            rospy.loginfo("Joint Goal {}".format(req.joint_goal))
+
             plan = self.robot.movej(req.joint_goal)
 
         # otherwise plan to pose goal
@@ -127,9 +151,10 @@ class CartServer:
 
         # set start configuration if given
         if len(req.start_config) > 0:
-            state = self.robot.mc.get_current_state()
-            state.joint_state.position = req.start_config
-            self.robot.mg.set_start_state(state)
+            # state = self.robot.mc.get_current_state()
+            # state.joint_state.position = req.start_config
+            # self.robot.mg.set_start_state(state)
+            set_start_config(self.robot, req.start_config)
             p_start = self.robot.forward_kinematics(req.start_config)
         else:
             p_start = self.robot.forward_kinematics(
