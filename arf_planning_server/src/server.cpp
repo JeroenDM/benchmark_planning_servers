@@ -31,20 +31,29 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
 {
   const int num_pts = 10;
 
-  // only do position interpolation for now
+  // Interpolation
   Eigen::Vector3d diff = goal.translation() - start.translation();
   double step_size = diff.norm() / (num_pts - 1);
   Eigen::Vector3d diff_unit = diff.normalized();
 
+  Eigen::Quaterniond start_quat(start.rotation());
+  Eigen::Quaterniond goal_quat(goal.rotation());
+
   std::vector<Eigen::Affine3d> poses;
+  double fraction = 0.0;
   for (int i = 0; i < num_pts; ++i)
   {
     Eigen::Affine3d pose = Eigen::Affine3d::Identity();
-    pose *= goal.rotation();
+    fraction = static_cast<double>(i) / 9.0;
 
+    // orientation interpolation
+    pose *= start_quat.slerp(fraction, goal_quat);
+
+    // position interpolation
     pose.translation() = start.translation() + static_cast<double>(i) * step_size * diff_unit;
 
-    // ROS_INFO_STREAM("Pose " << i);
+    ROS_INFO_STREAM("Pose " << i);
+    ROS_INFO_STREAM("Fraction " << fraction);
     // ROS_INFO_STREAM(pose.translation() << pose.rotation());
 
     poses.push_back(pose);
@@ -61,6 +70,7 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
     Eigen::Vector3d rpy_angles = poses[i].rotation().eulerAngles(0, 1, 2);
     // ROS_INFO_STREAM("EUler angles: " << rpy_angles << "\n");
     arf::Number rx(rpy_angles[0]), ry(rpy_angles[1]);
+    // arf::TolerancedNumber ry(rpy_angles[1], -0.5 + rpy_angles[1], rpy_angles[1] + 0.5, 5);
     arf::TolerancedNumber rz(rpy_angles[2], -M_PI, M_PI, 30);
     // Number rx(0.0), ry(135.0 * M_PI / 180.0);
     // TolerancedNumber rz(0, -M_PI, M_PI, 10);
