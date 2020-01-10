@@ -9,6 +9,10 @@ from ompl_planning_server.servers import PTPServer, CartServer
 if __name__ == "__main__":
     rospy.init_node('ompl_planning_server')
 
+    # # make sure the move_group node is ready
+    # print("Waiting for movegroup node.")
+    # rospy.wait_for_service("/plan_kinematic_path", timeout=20)
+
     # Open a connection to database for logging
     DB = LogDB(collection="ompl_planning_server")
 
