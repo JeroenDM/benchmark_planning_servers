@@ -10,7 +10,6 @@
 #include "arf_planning_server/visual_tools_wrapper.h"
 #include "arf_planning_server/planner.h"
 
-
 arf::Trajectory createTrajectory()
 {
   arf::Trajectory ee_trajectory_;
@@ -19,8 +18,8 @@ arf::Trajectory createTrajectory()
     arf::Number x(0.98);
     arf::Number y(-0.5 + static_cast<double>(i) / 9);
     arf::Number z(0.02);
-    arf::Number rx(0.0), ry(135.0 * M_PI / 180.0); //, ry(-M_PI);
-    //TolerancedNumber ry(-M_PI, -M_PI - 1.0, -M_PI + 1.0, 5);
+    arf::Number rx(0.0), ry(135.0 * M_PI / 180.0);  //, ry(-M_PI);
+    // TolerancedNumber ry(-M_PI, -M_PI - 1.0, -M_PI + 1.0, 5);
     arf::TolerancedNumber rz(0, -M_PI, M_PI, 10);
     arf::TrajectoryPoint tp(x, y, z, rx, ry, rz);
     ee_trajectory_.push_back(tp);
@@ -30,7 +29,6 @@ arf::Trajectory createTrajectory()
 
 arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
 {
-
   const int num_pts = 10;
 
   // only do position interpolation for now
@@ -44,8 +42,7 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
     Eigen::Affine3d pose = Eigen::Affine3d::Identity();
     pose *= goal.rotation();
 
-    pose.translation() =
-        start.translation() + static_cast<double>(i) * step_size * diff_unit;
+    pose.translation() = start.translation() + static_cast<double>(i) * step_size * diff_unit;
 
     // ROS_INFO_STREAM("Pose " << i);
     // ROS_INFO_STREAM(pose.translation() << pose.rotation());
@@ -62,11 +59,11 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
     arf::Number z(position[2]);
 
     Eigen::Vector3d rpy_angles = poses[i].rotation().eulerAngles(0, 1, 2);
-    //ROS_INFO_STREAM("EUler angles: " << rpy_angles << "\n");
+    // ROS_INFO_STREAM("EUler angles: " << rpy_angles << "\n");
     arf::Number rx(rpy_angles[0]), ry(rpy_angles[1]);
     arf::TolerancedNumber rz(rpy_angles[2], -M_PI, M_PI, 30);
-    //Number rx(0.0), ry(135.0 * M_PI / 180.0);
-    //TolerancedNumber rz(0, -M_PI, M_PI, 10);
+    // Number rx(0.0), ry(135.0 * M_PI / 180.0);
+    // TolerancedNumber rz(0, -M_PI, M_PI, 10);
 
     arf::TrajectoryPoint tp(x, y, z, rx, ry, rz);
     ee_trajectory_.push_back(tp);
@@ -95,7 +92,6 @@ std::vector<trajectory_msgs::JointTrajectoryPoint> jointPathToMsg(arf::JointPath
   }
   return ros_traj;
 }
-
 
 class PlanningServer
 {
@@ -135,7 +131,7 @@ public:
     auto gd = arf::calculateValidJointPoses(robot_, traj, rviz_);
 
     // slow but easy operation
-    std::vector<arf::JointPose> first_tp = {start_config};
+    std::vector<arf::JointPose> first_tp = { start_config };
     gd.insert(gd.begin(), first_tp);
 
     // std::cout << "Created graph data.\n";
