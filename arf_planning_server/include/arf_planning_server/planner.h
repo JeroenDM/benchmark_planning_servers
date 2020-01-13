@@ -12,9 +12,16 @@
 
 namespace arf
 {
-
 bool DEBUG = false;
 // ros::param::get<bool>("/arf_debug_flag", DEBUG, false);
+
+struct PlannerSettings
+{
+  double max_translation = 0.01;
+  double max_rotation = 0.06;
+  double pos_tol_resolution = 0.01;
+  double rot_tol_resolution = 0.15;
+};
 
 // TODO move this to arf_trajectory
 using Trajectory = std::vector<TrajectoryPoint>;
@@ -22,7 +29,6 @@ using Trajectory = std::vector<TrajectoryPoint>;
 using GraphData = std::vector<std::vector<std::vector<double>>>;
 using JointPose = std::vector<double>;
 using JointPath = std::vector<JointPose>;
-
 
 GraphData calculateValidJointPoses(Robot& robot, Trajectory& traj, Rviz& rviz)
 {
@@ -33,7 +39,8 @@ GraphData calculateValidJointPoses(Robot& robot, Trajectory& traj, Rviz& rviz)
     std::vector<std::vector<double>> new_data;
     for (auto pose : tp.getGridSamples())
     {
-      if (DEBUG){
+      if (DEBUG)
+      {
         rviz.plotPose(pose);
       }
       for (auto q_sol : robot.ik(pose))
@@ -41,7 +48,8 @@ GraphData calculateValidJointPoses(Robot& robot, Trajectory& traj, Rviz& rviz)
         if (!robot.isInCollision(q_sol))
         {
           new_data.push_back(q_sol);
-          if (DEBUG){
+          if (DEBUG)
+          {
             robot.plot(rviz.visual_tools_, q_sol);
           }
         }
@@ -65,7 +73,8 @@ GraphData calculateValidJointPoses(RedundantRobot& robot, Trajectory& traj, Rviz
     std::vector<std::vector<double>> new_data;
     for (auto pose : tp.getGridSamples())
     {
-      if (DEBUG){
+      if (DEBUG)
+      {
         rviz.plotPose(pose);
       }
       for (auto q_sol : robot.ikGridSamples(pose))
@@ -73,7 +82,8 @@ GraphData calculateValidJointPoses(RedundantRobot& robot, Trajectory& traj, Rviz
         if (!robot.isInCollision(q_sol))
         {
           new_data.push_back(q_sol);
-          if (DEBUG){
+          if (DEBUG)
+          {
             robot.plot(rviz.visual_tools_, q_sol);
           }
         }
@@ -124,6 +134,6 @@ JointPath calculateShortestPath(RedundantRobot& robot, GraphData& gd)
   return solution;
 }
 
-}
+}  // namespace arf
 
 #endif
