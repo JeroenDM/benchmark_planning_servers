@@ -9,7 +9,7 @@
 // I put some code in header files instead of separate libraries #quickanddirty
 #include "arf_planning_server/visual_tools_wrapper.h"
 #include "arf_planning_server/planner.h"
-
+#include "arf_planning_server/interpolation.h"
 
 arf::Trajectory createTrajectory()
 {
@@ -19,8 +19,8 @@ arf::Trajectory createTrajectory()
     arf::Number x(0.98);
     arf::Number y(-0.5 + static_cast<double>(i) / 9);
     arf::Number z(0.02);
-    arf::Number rx(0.0), ry(135.0 * M_PI / 180.0); //, ry(-M_PI);
-    //TolerancedNumber ry(-M_PI, -M_PI - 1.0, -M_PI + 1.0, 5);
+    arf::Number rx(0.0), ry(135.0 * M_PI / 180.0);  //, ry(-M_PI);
+    // TolerancedNumber ry(-M_PI, -M_PI - 1.0, -M_PI + 1.0, 5);
     arf::TolerancedNumber rz(0, -M_PI, M_PI, 10);
     arf::TrajectoryPoint tp(x, y, z, rx, ry, rz);
     ee_trajectory_.push_back(tp);
@@ -28,33 +28,13 @@ arf::Trajectory createTrajectory()
   return ee_trajectory_;
 }
 
-arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
+arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal, arf::PlannerSettings& settings)
 {
-
-  const int num_pts = 10;
-
-  // only do position interpolation for now
-  Eigen::Vector3d diff = goal.translation() - start.translation();
-  double step_size = diff.norm() / (num_pts - 1);
-  Eigen::Vector3d diff_unit = diff.normalized();
-
-  std::vector<Eigen::Affine3d> poses;
-  for (int i = 0; i < num_pts; ++i)
-  {
-    Eigen::Affine3d pose = Eigen::Affine3d::Identity();
-    pose *= goal.rotation();
-
-    pose.translation() =
-        start.translation() + static_cast<double>(i) * step_size * diff_unit;
-
-    // ROS_INFO_STREAM("Pose " << i);
-    // ROS_INFO_STREAM(pose.translation() << pose.rotation());
-
-    poses.push_back(pose);
-  }
+  auto poses = arf::interpolate(start, goal, settings.max_translation, settings.max_rotation);
+  std::size_t steps = poses.size();
 
   arf::Trajectory ee_trajectory_;
-  for (int i = 0; i < num_pts; ++i)
+  for (int i = 0; i < steps; ++i)
   {
     Eigen::Vector3d position = poses[i].translation();
     arf::Number x(position[0]);
@@ -62,11 +42,11 @@ arf::Trajectory createTrajectory(Eigen::Affine3d& start, Eigen::Affine3d& goal)
     arf::Number z(position[2]);
 
     Eigen::Vector3d rpy_angles = poses[i].rotation().eulerAngles(0, 1, 2);
-    //ROS_INFO_STREAM("EUler angles: " << rpy_angles << "\n");
+    // ROS_INFO_STREAM("EUler angles: " << rpy_angles << "\n");
     arf::Number rx(rpy_angles[0]), ry(rpy_angles[1]);
     arf::TolerancedNumber rz(rpy_angles[2], -M_PI, M_PI, 30);
-    //Number rx(0.0), ry(135.0 * M_PI / 180.0);
-    //TolerancedNumber rz(0, -M_PI, M_PI, 10);
+    // Number rx(0.0), ry(135.0 * M_PI / 180.0);
+    // TolerancedNumber rz(0, -M_PI, M_PI, 10);
 
     arf::TrajectoryPoint tp(x, y, z, rx, ry, rz);
     ee_trajectory_.push_back(tp);
@@ -96,18 +76,20 @@ std::vector<trajectory_msgs::JointTrajectoryPoint> jointPathToMsg(arf::JointPath
   return ros_traj;
 }
 
-
 class PlanningServer
 {
   ros::NodeHandle nh_;
   ros::ServiceServer cart_plannig_server_;
   arf::RedundantRobot robot_;
   arf::Rviz rviz_;
+  arf::PlannerSettings settings_;
 
 public:
   PlanningServer()
   {
     cart_plannig_server_ = nh_.advertiseService("arf_cart_planning", &PlanningServer::executePlanningRequest, this);
+    // start with default settings, read them from parameter server when planning
+    settings_ = arf::PlannerSettings();
     ROS_INFO_STREAM("Ready to receive Cartesian planning requests.");
   }
 
@@ -116,6 +98,29 @@ public:
   void testServer()
   {
     robot_.printCurrentJointValues();
+  }
+
+  void readSettigsFromParameterServer()
+  {
+    if (ros::param::has("/cart_config"))
+    {
+      double max_translation, max_rotation, pos_tol_resolution, rot_tol_resolution;
+      if (ros::param::get("/cart_config/max_translation", max_translation))
+        settings_.max_translation = max_translation;
+
+      if (ros::param::get("/cart_config/max_rotation", max_rotation))
+        settings_.max_rotation = max_rotation;
+
+      if (ros::param::get("/cart_config/pos_tol_resolution", pos_tol_resolution))
+        settings_.pos_tol_resolution = pos_tol_resolution;
+
+      if (ros::param::get("/cart_config/max_translation", rot_tol_resolution))
+        settings_.rot_tol_resolution = rot_tol_resolution;
+    }
+    else
+    {
+      ROS_INFO_STREAM("Could not find a planner configuration /cart_config, using defaults.");
+    }
   }
 
   bool executePlanningRequest(nexon_msgs::LINPlanning::Request& req, nexon_msgs::LINPlanning::Response& resp)
@@ -131,11 +136,11 @@ public:
 
     // ROS_INFO_STREAM("Start pose:\n" << start_pose.translation());
 
-    auto traj = createTrajectory(start_pose, goal_pose);
+    auto traj = createTrajectory(start_pose, goal_pose, settings_);
     auto gd = arf::calculateValidJointPoses(robot_, traj, rviz_);
 
     // slow but easy operation
-    std::vector<arf::JointPose> first_tp = {start_config};
+    std::vector<arf::JointPose> first_tp = { start_config };
     gd.insert(gd.begin(), first_tp);
 
     // std::cout << "Created graph data.\n";
