@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="desc_planning_server" pkg="descartes_planning_server" type="server" output="screen"/>
+</launch>

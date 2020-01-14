@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<package>
+  <name>descartes_planning_server</name>
+  <version>0.1.0</version>
+  <description>Descartes movel planning server.</description>
+
+  <maintainer email="jeroen.demaeyer@kuleuven.be">Jeroen De Maeyer</maintainer>
+
+  <license>Apache 2.0</license>
+
+  <url type="website">http://wiki.ros.org/descartes/</url>
+
+  <author email="jeroen.demaeyer@kuleuven.be">Jonathan Meyer, Jeroen De Maeyer</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>roslib</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend> 
+  <build_depend>moveit_visual_tools</build_depend> 
+
+  <build_depend>descartes_core</build_depend>
+  <build_depend>descartes_moveit</build_depend>
+  <build_depend>descartes_planner</build_depend>
+  <build_depend>descartes_trajectory</build_depend>
+  <build_depend>descartes_utilities</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+
+  <run_depend>roslib</run_depend>
+  <run_depend>descartes_core</run_depend>
+  <run_depend>descartes_moveit</run_depend>
+  <run_depend>descartes_planner</run_depend>
+  <run_depend>descartes_trajectory</run_depend>
+  <run_depend>descartes_utilities</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
+  <run_depend>moveit_visual_tools</run_depend>
+
+
+
+</package>
