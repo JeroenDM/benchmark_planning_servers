@@ -1,6 +1,4 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- <group ns="ompl_server_1"> -->
-        <node name="arf_planning_server_1" pkg="arf_planning_server" type="server" output="screen"/>
-    <!-- </group> -->
+    <node name="arf_planning_server" pkg="arf_planning_server" type="server" output="screen"/>
 </launch>

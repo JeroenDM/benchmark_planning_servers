@@ -148,7 +148,8 @@ public:
 
     auto jp = arf::calculateShortestPath(robot_, gd);
 
-    rviz_.plotPath(robot_, jp);
+    if (arf::DEBUG)
+      rviz_.plotPath(robot_, jp);
 
     auto ros_jp = jointPathToMsg(jp);
 
