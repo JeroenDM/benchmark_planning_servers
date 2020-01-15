@@ -132,19 +132,35 @@ public:
     ROS_INFO_STREAM(req);
     readSettigsFromParameterServer();
 
-    arf::JointPose start_config = req.start_config;
-    auto start_pose = robot_.fk(start_config);
-    Eigen::Affine3d goal_pose;
-    tf::poseMsgToEigen(req.pose_goal, goal_pose);
+    arf::Trajectory traj;
+    arf::GraphData gd;
+    if (req.use_start_config)
+    {
+      ROS_INFO_STREAM("Planning from given joint configuration.");
+      arf::JointPose start_config = req.start_config;
+      auto start_pose = robot_.fk(start_config);
+      Eigen::Affine3d goal_pose;
+      tf::poseMsgToEigen(req.pose_goal, goal_pose);
 
-    // ROS_INFO_STREAM("Start pose:\n" << start_pose.translation());
+      // ROS_INFO_STREAM("Start pose:\n" << start_pose.translation());
 
-    auto traj = createTrajectory(start_pose, goal_pose, settings_);
-    auto gd = arf::calculateValidJointPoses(robot_, traj, rviz_);
+      traj = createTrajectory(start_pose, goal_pose, settings_);
+      gd = arf::calculateValidJointPoses(robot_, traj, rviz_);
 
-    // slow but easy operation
-    std::vector<arf::JointPose> first_tp = { start_config };
-    gd.insert(gd.begin(), first_tp);
+      // slow but easy operation
+      std::vector<arf::JointPose> first_tp = { start_config };
+      gd.insert(gd.begin(), first_tp);
+    }
+    else
+    {
+      ROS_INFO_STREAM("Planning from given end-effector pose.");
+      Eigen::Affine3d start, goal;
+      tf::poseMsgToEigen(req.pose_start, start);
+      tf::poseMsgToEigen(req.pose_goal, goal);
+
+      traj = createTrajectory(start, goal, settings_);
+      gd = arf::calculateValidJointPoses(robot_, traj, rviz_);
+    }
 
     // std::cout << "Created graph data.\n";
     // std::cout << gd << std::endl;
