@@ -132,6 +132,8 @@ public:
     ROS_INFO_STREAM(req);
     readSettigsFromParameterServer();
 
+    robot_.updatePlanningScene();
+
     arf::Trajectory traj;
     arf::GraphData gd;
     if (req.use_start_config)

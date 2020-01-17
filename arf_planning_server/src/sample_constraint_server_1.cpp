@@ -20,15 +20,16 @@ std::vector<std::vector<double>> calculateValidJointPoses(arf::Robot& robot, arf
   std::vector<std::vector<double>> joint_poses;
   for (auto pose : tp.getGridSamples())
   {
-    if (DEBUG){
+    if (DEBUG)
+    {
       rviz.plotPose(pose);
     }
     for (auto q_sol : robot.ik(pose))
     {
       if (DEBUG)
       {
-          robot.plot(rviz.visual_tools_, q_sol);
-          ros::Duration(0.01).sleep();
+        robot.plot(rviz.visual_tools_, q_sol);
+        ros::Duration(0.01).sleep();
       }
       if (!robot.isInCollision(q_sol))
       {
@@ -49,7 +50,7 @@ std::vector<arf::Number> parseConstraint(Eigen::Vector3d vals, std::vector<doubl
   std::vector<arf::Number> numbers;
   if (mins.size() == 3 && maxs.size() == 3)
   {
-    for (std::size_t i=0; i<3; ++i)
+    for (std::size_t i = 0; i < 3; ++i)
     {
       if (mins[i] == maxs[i])
       {
@@ -64,7 +65,7 @@ std::vector<arf::Number> parseConstraint(Eigen::Vector3d vals, std::vector<doubl
   else if (mins.size() == 0 && maxs.size() == 0)
   {
     // Fixed position
-    for (std::size_t i=0; i<3; ++i)
+    for (std::size_t i = 0; i < 3; ++i)
     {
       numbers.push_back(arf::Number(vals[i]));
     }
@@ -74,7 +75,6 @@ std::vector<arf::Number> parseConstraint(Eigen::Vector3d vals, std::vector<doubl
     ROS_ERROR_STREAM("Invalid PoseConstraint position bounds.");
   }
   return numbers;
-
 }
 
 /* \Brief Create Toleranced Trajectory Point from pose constraints in request. */
@@ -88,7 +88,6 @@ arf::TrajectoryPoint poseConstraintsToTP(geometry_msgs::Pose& pose, nexon_msgs::
 
   auto position = parseConstraint(p, con.xyz_min, con.xyz_max);
   auto orientation = parseConstraint(rpy, con.rpy_min, con.rpy_max);
-  
 
   arf::Number rx(rpy[0]), ry(rpy[1]), rz(rpy[2]);
   arf::TrajectoryPoint tp(position[0], position[1], position[2], orientation[0], orientation[1], orientation[2]);
@@ -102,6 +101,7 @@ class SampleServer
   ros::ServiceServer cart_plannig_server_;
   arf::Robot robot_;
   arf::Rviz rviz_;
+
 public:
   SampleServer()
   {
@@ -113,6 +113,8 @@ public:
   {
     ROS_INFO_STREAM("Received sample request.");
     ROS_INFO_STREAM(req);
+
+    robot_.updatePlanningScene();
 
     if (!req.constraint.relative)
     {
@@ -133,7 +135,6 @@ public:
     return true;
   }
 };
-
 
 int main(int argc, char** argv)
 {
