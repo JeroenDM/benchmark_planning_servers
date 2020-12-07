@@ -79,3 +79,10 @@ Bounds are added on the end-effector's position (`xyz_min` and `xyz_max`), or or
 
 **arf_planning_server**
 - `LINPlanning` service called `/arf_cart_planning` (TODO, rename to make it consistent.)
+
+# LICENSE
+
+The main license for this repository is the MIT License, except for two files.
+- `arf_planning_server/include/arf_planning_server/machine_specs.h`
+- `arf_planning_server/src/machine_specs.cpp`
+These are copied from [ompl](https://github.com/ompl/ompl) and contain a BSD License statement.

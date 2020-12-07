@@ -137,7 +137,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_server src/server.cpp)
+add_executable(${PROJECT_NAME}_server src/server.cpp src/machine_specs.cpp)
 add_executable(${PROJECT_NAME}_server_3 src/server_3.cpp)
 add_executable(${PROJECT_NAME}_sample_constraint_server_1 src/sample_constraint_server_1.cpp)
 add_executable(${PROJECT_NAME}_sample_constraint_server_3 src/sample_constraint_server_3.cpp)

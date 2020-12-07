@@ -2,6 +2,7 @@
 #include <nexon_msgs/LINPlanning.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <eigen3/Eigen/Geometry>
+#include <chrono>
 
 #include "arf_moveit_wrapper/moveit_wrapper.h"
 #include "arf_trajectory/trajectory.h"
@@ -10,6 +11,7 @@
 #include "arf_planning_server/visual_tools_wrapper.h"
 #include "arf_planning_server/planner.h"
 #include "arf_planning_server/interpolation.h"
+#include "arf_planning_server/machine_specs.h"
 
 arf::Trajectory createTrajectory()
 {
@@ -134,6 +136,19 @@ public:
 
     robot_.updatePlanningScene();
 
+    auto start_time = std::chrono::steady_clock::now();
+
+    std::string run_id;
+    if(ros::param::has("/benchmark_run_id"))
+      nh_.getParam("/benchmark_run_id", run_id);
+    else
+    {
+      ROS_WARN_NAMED("server", "No benchmark_run_id found for the current run.");
+      // fallback to default ros run id
+      nh_.getParam("/run_id", run_id);
+    }
+    
+
     arf::Trajectory traj;
     arf::GraphData gd;
     if (req.use_start_config)
@@ -171,11 +186,18 @@ public:
 
     // rviz_.plotPath(robot_, jp);
 
+    auto end_time = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+    auto mem_used = machine::getProcessMemoryUsage();
+
     auto ros_jp = jointPathToMsg(jp);
 
     resp.success = true;
     resp.joint_path = ros_jp;
     ROS_INFO_STREAM("Arf planning request finished.");
+    ROS_INFO_STREAM("Runtime: " << elapsed_seconds.count() << " seconds");
+    ROS_INFO_STREAM("Memory: " << mem_used << " bytes");
+    ROS_INFO_STREAM("Run id: " << run_id);
     return true;
   }
 };
